@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:WeatherApp.View"
         xmlns:vm="clr-namespace:WeatherApp.ViewModel"
         mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
         Title="WeatherWindow" Height="600" Width="400">
 
     <Window.Resources>
@@ -24,12 +25,15 @@
                     Content="Search"
                     Command="{Binding SearchCommand}"
                     CommandParameter="{Binding Query}"/>
-            <ListView>
+            <ListView ItemsSource="{Binding Locations}"
+                      SelectedValue="{Binding SelectedLocation}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid>
-                            <TextBlock/>
-                        </Grid>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding LocalizedName, StringFormat='{}{0}, '}"/>
+                            <TextBlock Text="{Binding AdministrativeArea.LocalizedName, StringFormat='{}{0}, '}"/>
+                            <TextBlock Text="{Binding Country.LocalizedName}"/>
+                        </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
@@ -43,7 +47,7 @@
             </Grid.ColumnDefinitions>
             <StackPanel Margin="0 10">
                 <TextBlock DataContext="{StaticResource vm}"
-                           Text="{Binding SelectedCity.LocalizedName}"
+                           Text="{Binding SelectedLocation.LocalizedName}"
                            Foreground="#f4f4f8"
                            FontSize="20"
                            Margin="20 0"/>

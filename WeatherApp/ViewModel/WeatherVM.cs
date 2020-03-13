@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -14,14 +15,14 @@ namespace WeatherApp.ViewModel
     {
         private string query;
         private CurrentCondition currentCondition;
-        private Location selectedCity;
+        private Location selectedLocation;
         public event PropertyChangedEventHandler PropertyChanged;
 
         public WeatherVM()
         {
             if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
             {
-                SelectedCity = new Location
+                SelectedLocation = new Location
                 {
                     LocalizedName = "Boston"
                 };
@@ -39,6 +40,7 @@ namespace WeatherApp.ViewModel
             }
 
             SearchCommand = new SearchCommand(this);
+            Locations = new ObservableCollection<Location>();
         }
 
         public SearchCommand SearchCommand { get; set; }
@@ -63,19 +65,41 @@ namespace WeatherApp.ViewModel
             }
         }
 
-        public Location SelectedCity
+        public Location SelectedLocation
         {
-            get { return selectedCity; }
+            get { return selectedLocation; }
             set
             {
-                selectedCity = value;
-                OnPropertyChanged("SelectedCity");
+                selectedLocation = value;
+                if (selectedLocation != null)
+                {
+                    OnPropertyChanged("SelectedLocation");
+                    GetCurrentCondition();
+                }
             }
+        }
+
+        public ObservableCollection<Location> Locations { get; set; }
+
+        private async void GetCurrentCondition()
+        {
+            Query = string.Empty;
+            CurrentCondition = await AccuWeatherHelper.GetCurrentCondition(SelectedLocation.Key);
+            Locations.Clear();
         }
 
         public async void MakeQuery()
         {
+            // get list of locations from search criteria
             var locations = await AccuWeatherHelper.GetLocations(Query);
+            // clear current locations list because setting it to a new ObservableCollection
+            // will break the binding
+            Locations.Clear();
+            foreach(Location location in locations)
+            {
+                // add each location from query to Locations list
+                Locations.Add(location);
+            }
         }
 
         private void OnPropertyChanged(string propertyName)
